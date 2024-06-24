@@ -11,14 +11,16 @@ ecgChannel = 3;
 accChannels = [4, 5, 6]; % z, y, x respectively
 accChannels_arm = [7, 8, 9]; % x, y, z respectively
 
-[Cmin, Cmax] = getCalibrationData('calibrationFile.txt', ecgChannel, accChannels);
+%[Cmin, Cmax] = getCalibrationData('calibrationFile.txt', ecgChannel, accChannels);
+Cmin = [21352, 27328, 26844];
+Cmax = [43596, 39048, 45104];
 
 
 %% Process ecg and acc
 
 TEST = 0;
 if (TEST)
-    time_vector = 1:(2*10000); 
+    time_vector = 1:(3*10000); 
 else
     time_vector = 1:(((7*60 + 59)*60)*1000-360000); 
 end
