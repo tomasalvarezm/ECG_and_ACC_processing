@@ -70,7 +70,7 @@ for setIndex = 1:length(fileSets)
         combinedData = [geometricMean_vector', accX_chest_quantified, accY_chest_quantified, accZ_chest_quantified, totalMovement_chest_quantified, accX_arm_quantified, accY_arm_quantified, accZ_arm_quantified, totalMovement_arm_quantified];
         
         % write and save processed data to a file
-        outputFileName = ['processedData2_' currentFiles{fileIndex}];
+        outputFileName = ['processedData_' currentFiles{fileIndex}];
         writematrix(['indexes', 'movement_x_chest', 'movement_y_chest', 'movement_z_chest', 'movement_total_chest', 'movement_x_arm', 'movement_y_arm', 'movement_z_arm', 'movement_total_arm'], outputFileName, 'Delimiter', 'tab');
         writematrix(combinedData, outputFileName, 'Delimiter', 'tab', 'WriteMode', 'append');
 
