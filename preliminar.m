@@ -1,12 +1,15 @@
 %% Load files and calibration data
 
-files_S = {'S_rec1_2024-05-23.txt', 'S_rec2_2024-05-31.txt', 'S_rec3_2024-06-04.txt', 'S_rec4_2024-06-07.txt'};
-files_M = {'M_rec1_2024-05-27.txt', 'M_rec2_2024-06-01.txt', 'M_rec3_2024-06-05.txt', 'M_rec4_2024-06-10.txt'};
-files_L = {'L_rec1_2024-05-28.txt', 'L_rec2_2024-06-03.txt', 'L_rec3_2024-06-06.txt', 'L_rec4_2024-06-11.txt'};
+% files_S = {'S_rec1_2024-05-23.txt', 'S_rec2_2024-05-31.txt', 'S_rec3_2024-06-04.txt', 'S_rec4_2024-06-07.txt'};
+% files_M = {'M_rec1_2024-05-27.txt', 'M_rec2_2024-06-01.txt', 'M_rec3_2024-06-05.txt', 'M_rec4_2024-06-10.txt'};
+% files_L = {'L_rec1_2024-05-28.txt', 'L_rec2_2024-06-03.txt', 'L_rec3_2024-06-06.txt', 'L_rec4_2024-06-11.txt'};
+
+files_M_mat2 = {'Mat2_rec1_2024-06-21.txt', 'Mat2_rec2_2024-06-22.txt', 'Mat2_rec3_2024-06-23.txt', 'Mat2_rec4_2024-06-24.txt'};
 
 samplingRate = 1000; % Hz
 ecgChannel = 3;
 accChannels = [4, 5, 6]; % z, y, x respectively
+accChannels_arm = [7, 8, 9]; % x, y, z respectively
 
 [Cmin, Cmax] = getCalibrationData('calibrationFile.txt', ecgChannel, accChannels);
 
@@ -21,63 +24,57 @@ else
 end
 
 
-fileSets = {files_L, files_M, files_S};
+% fileSets = {files_L, files_M, files_S};
+fileSets = {files_M_mat2};
 
-indexes = cell(1, length(fileSets)); % indexes = cell(1, length(fileSets)); -> 1x3 cell array
-movement_x = cell(1, length(fileSets));
-movement_y = cell(1, length(fileSets));
-movement_z = cell(1, length(fileSets));
-movement_total = cell(1, length(fileSets));
-
-for setIndex = 1:length(indexes)
+for setIndex = 1:length(fileSets)
     currentFiles = fileSets{setIndex}; % ej: currentFiles = fileSets{1} -> files_L ->(...,...,....,....)
-    
-    indexes{setIndex} = cell(1, length(currentFiles)); % indexes{1} = 1x4 cell array
-    movement_x{setIndex} = cell(1, length(currentFiles));
-    movement_y{setIndex} = cell(1, length(currentFiles));
-    movement_z{setIndex} = cell(1, length(currentFiles));
-    movement_total{setIndex} = cell(1, length(currentFiles));
 
     for fileIndex = 1:length(currentFiles) % fileIndex = 1:length(currentFiles) = 4
-        [ecg, accX, accY, accZ] = readPluxDataWithHeader(currentFiles{fileIndex}, ecgChannel, accChannels);
+        [ecg, accX_chest, accY_chest, accZ_chest, accX_arm, accY_arm, accZ_arm] = readPluxDataWithHeader(currentFiles{fileIndex}, ecgChannel, accChannels, accChannels_arm);
         ecg = ecg(time_vector);
-        accX = accX(time_vector);
-        accY = accY(time_vector);
-        accZ = accZ(time_vector);
+        accX_chest = accX_chest(time_vector);
+        accY_chest = accY_chest(time_vector);
+        accZ_chest = accZ_chest(time_vector);
+        accX_arm = accX_arm(time_vector);
+        accY_arm = accY_arm(time_vector);
+        accZ_arm = accZ_arm(time_vector);
 
-        % calibrating and filtrating accelerometer values
+        % calibrating and filtrating accelerometer values 
         % axis number (1 for X, 2 for Y, 3 for Z)
-        accX_filtered = calibrateRemoveGravity(accX, Cmin(1), Cmax(1));
-        accY_filtered = calibrateRemoveGravity(accY, Cmin(2), Cmax(2));
-        accZ_filtered = calibrateRemoveGravity(accZ, Cmin(3), Cmax(3));
+        accX_chest_filtered = calibrateRemoveGravity(accX_chest, Cmin(1), Cmax(1));
+        accY_chest_filtered = calibrateRemoveGravity(accY_chest, Cmin(2), Cmax(2));
+        accZ_chest_filtered = calibrateRemoveGravity(accZ_chest, Cmin(3), Cmax(3));
+        totalMovement_chest = calculateTotalMovement(accX_chest_filtered, accY_chest_filtered, accZ_chest_filtered);
 
-        totalMovement = calculateTotalMovement(accX_filtered, accY_filtered, accZ_filtered);
+        accX_arm_filtered = calibrateRemoveGravity(accX_arm, Cmin(1), Cmax(1));
+        accY_arm_filtered = calibrateRemoveGravity(accY_arm, Cmin(2), Cmax(2));
+        accZ_arm_filtered = calibrateRemoveGravity(accZ_arm, Cmin(3), Cmax(3));
+        totalMovement_arm = calculateTotalMovement(accX_arm_filtered, accY_arm_filtered, accZ_arm_filtered);
 
         % processing accelerometer values
-        accX_quantified = quantifyMovement(accX_filtered, samplingRate);
-        accY_quantified = quantifyMovement(accY_filtered, samplingRate);
-        accZ_quantified = quantifyMovement(accZ_filtered, samplingRate);
-        totalMovement_quantified = quantifyMovement(totalMovement, samplingRate);
+        accX_chest_quantified = quantifyMovement(accX_chest_filtered, samplingRate);
+        accY_chest_quantified = quantifyMovement(accY_chest_filtered, samplingRate);
+        accZ_chest_quantified = quantifyMovement(accZ_chest_filtered, samplingRate);
+        totalMovement_chest_quantified = quantifyMovement(totalMovement_chest, samplingRate);
+
+        accX_arm_quantified = quantifyMovement(accX_arm_filtered, samplingRate);
+        accY_arm_quantified = quantifyMovement(accY_arm_filtered, samplingRate);
+        accZ_arm_quantified = quantifyMovement(accZ_arm_filtered, samplingRate);
+        totalMovement_arm_quantified = quantifyMovement(totalMovement_arm, samplingRate);
 
         % processing electrocardiogram values
         [kSQI_01_vector, sSQI_01_vector, pSQI_01_vector, rel_powerLine01_vector, cSQI_01_vector, basSQI_01_vector, dSQI_01_vector, geometricMean_vector, averageGeometricMean] = mSQI(ecg, samplingRate);
         
-        % storing processed values 
-        indexes{setIndex}{fileIndex} = geometricMean_vector;
-        movement_x{setIndex}{fileIndex} = accX_quantified;
-        movement_y{setIndex}{fileIndex} = accY_quantified;
-        movement_z{setIndex}{fileIndex} = accZ_quantified;
-        movement_total{setIndex}{fileIndex} = totalMovement_quantified;
-        
         % combine vectors into a single matrix
-        combinedData = [geometricMean_vector', accX_quantified', accY_quantified', accZ_quantified', totalMovement_quantified'];
+        combinedData = [geometricMean_vector', accX_chest_quantified, accY_chest_quantified, accZ_chest_quantified, totalMovement_chest_quantified, accX_arm_quantified, accY_arm_quantified, accZ_arm_quantified, totalMovement_arm_quantified];
         
         % write and save processed data to a file
-        outputFileName = ['processedData_' currentFiles{fileIndex}];
-        writematrix(['indexes', 'movement_x', 'movement_y', 'movement_z', 'movement_total'], outputFileName, 'Delimiter', 'tab');
+        outputFileName = ['processedData2_' currentFiles{fileIndex}];
+        writematrix(['indexes', 'movement_x_chest', 'movement_y_chest', 'movement_z_chest', 'movement_total_chest', 'movement_x_arm', 'movement_y_arm', 'movement_z_arm', 'movement_total_arm'], outputFileName, 'Delimiter', 'tab');
         writematrix(combinedData, outputFileName, 'Delimiter', 'tab', 'WriteMode', 'append');
 
-        fprintf("Average mean of windows of %s: %f\n", currentFiles{fileIndex}, averageGeometricMean);
+        %fprintf("Average mean of windows of %s: %f\n", currentFiles{fileIndex}, averageGeometricMean);
     end
 end
 
@@ -144,22 +141,82 @@ movement_total_S = movement_total{3};
 % data for the Comparison Within Each Register
 
 % data of Shirt L that will be used for the CI
-data_L_R2R3R4 =[indexes_L{2};indexes_L{3};indexes_L{4}]; % data_L_R2R3R4 -> R2:register2, R3:register3, R4:register of Shirt L
-data_L_R1R3R4 =[indexes_L{1};indexes_L{3};indexes_L{4}];
-data_L_R1R2R4 =[indexes_L{1};indexes_L{2};indexes_L{4}];
-data_L_R1R2R3 =[indexes_L{1};indexes_L{2};indexes_L{3}];
+indexes_L_R2R3R4 =[indexes_L{2};indexes_L{3};indexes_L{4}]; % indexes_L_R2R3R4 -> R2:register2, R3:register3, R4:register of Shirt L
+indexes_L_R1R3R4 =[indexes_L{1};indexes_L{3};indexes_L{4}];
+indexes_L_R1R2R4 =[indexes_L{1};indexes_L{2};indexes_L{4}];
+indexes_L_R1R2R3 =[indexes_L{1};indexes_L{2};indexes_L{3}];
+
+xmov_L_R2R3R4 =[movement_x_L{2};movement_x_L{3};movement_x_L{4}]; 
+xmov_L_R1R3R4 =[movement_x_L{1};movement_x_L{3};movement_x_L{4}];
+xmov_L_R1R2R4 =[movement_x_L{1};movement_x_L{2};movement_x_L{4}];
+xmov_L_R1R2R3 =[movement_x_L{1};movement_x_L{2};movement_x_L{3}];
+
+ymov_L_R2R3R4 =[movement_y_L{2};movement_y_L{3};movement_y_L{4}]; 
+ymov_L_R1R3R4 =[movement_y_L{1};movement_y_L{3};movement_y_L{4}];
+ymov_L_R1R2R4 =[movement_y_L{1};movement_y_L{2};movement_y_L{4}];
+ymov_L_R1R2R3 =[movement_y_L{1};movement_y_L{2};movement_y_L{3}];
+
+zmov_L_R2R3R4 =[movement_z_L{2};movement_z_L{3};movement_z_L{4}]; 
+zmov_L_R1R3R4 =[movement_z_L{1};movement_z_L{3};movement_z_L{4}];
+zmov_L_R1R2R4 =[movement_z_L{1};movement_z_L{2};movement_z_L{4}];
+zmov_L_R1R2R3 =[movement_z_L{1};movement_z_L{2};movement_z_L{3}];
+
+tmov_L_R2R3R4 =[movement_total_L{2};movement_total_L{3};movement_total_L{4}]; 
+tmov_L_R1R3R4 =[movement_total_L{1};movement_total_L{3};movement_total_L{4}];
+tmov_L_R1R2R4 =[movement_total_L{1};movement_total_L{2};movement_total_L{4}];
+tmov_L_R1R2R3 =[movement_total_L{1};movement_total_L{2};movement_total_L{3}];
 
 % data of Shirt M that will be used for the CI
-data_M_R2R3R4 =[indexes_M{2};indexes_M{3};indexes_M{4}]; % data_M_R2R3R4 -> R2:register2, R3:register3, R4:register of Shirt M
-data_M_R1R3R4 =[indexes_M{1};indexes_M{3};indexes_M{4}];
-data_M_R1R2R4 =[indexes_M{1};indexes_M{2};indexes_M{4}];
-data_M_R1R2R3 =[indexes_M{1};indexes_M{2};indexes_M{3}];
+indexes_M_R2R3R4 =[indexes_M{2};indexes_M{3};indexes_M{4}]; % indexes_M_R2R3R4 -> R2:register2, R3:register3, R4:register of Shirt M
+indexes_M_R1R3R4 =[indexes_M{1};indexes_M{3};indexes_M{4}];
+indexes_M_R1R2R4 =[indexes_M{1};indexes_M{2};indexes_M{4}];
+indexes_M_R1R2R3 =[indexes_M{1};indexes_M{2};indexes_M{3}];
+
+xmov_M_R2R3R4 =[movement_x_M{2};movement_x_M{3};movement_x_M{4}]; 
+xmov_M_R1R3R4 =[movement_x_M{1};movement_x_M{3};movement_x_M{4}];
+xmov_M_R1R2R4 =[movement_x_M{1};movement_x_M{2};movement_x_M{4}];
+xmov_M_R1R2R3 =[movement_x_M{1};movement_x_M{2};movement_x_M{3}];
+
+ymov_M_R2R3R4 =[movement_y_M{2};movement_y_M{3};movement_y_M{4}]; 
+ymov_M_R1R3R4 =[movement_y_M{1};movement_y_M{3};movement_y_M{4}];
+ymov_M_R1R2R4 =[movement_y_M{1};movement_y_M{2};movement_y_M{4}];
+ymov_M_R1R2R3 =[movement_y_M{1};movement_y_M{2};movement_y_M{3}];
+
+zmov_M_R2R3R4 =[movement_z_M{2};movement_z_M{3};movement_z_M{4}]; 
+zmov_M_R1R3R4 =[movement_z_M{1};movement_z_M{3};movement_z_M{4}];
+zmov_M_R1R2R4 =[movement_z_M{1};movement_z_M{2};movement_z_M{4}];
+zmov_M_R1R2R3 =[movement_z_M{1};movement_z_M{2};movement_z_M{3}];
+
+tmov_M_R2R3R4 =[movement_total_M{2};movement_total_M{3};movement_total_M{4}]; 
+tmov_M_R1R3R4 =[movement_total_M{1};movement_total_M{3};movement_total_M{4}];
+tmov_M_R1R2R4 =[movement_total_M{1};movement_total_M{2};movement_total_M{4}];
+tmov_M_R1R2R3 =[movement_total_M{1};movement_total_M{2};movement_total_M{3}];
 
 % data of Shirt S that will be used for the CI
-data_S_R2R3R4 =[indexes_S{2};indexes_S{3};indexes_S{4}]; % data_S_R2R3R4 -> R2:register2, R3:register3, R4:register of Shirt S
-data_S_R1R3R4 =[indexes_S{1};indexes_S{3};indexes_S{4}];
-data_S_R1R2R4 =[indexes_S{1};indexes_S{2};indexes_S{4}];
-data_S_R1R2R3 =[indexes_S{1};indexes_S{2};indexes_S{3}];
+indexes_S_R2R3R4 =[indexes_S{2};indexes_S{3};indexes_S{4}]; % indexes_S_R2R3R4 -> R2:register2, R3:register3, R4:register of Shirt S
+indexes_S_R1R3R4 =[indexes_S{1};indexes_S{3};indexes_S{4}];
+indexes_S_R1R2R4 =[indexes_S{1};indexes_S{2};indexes_S{4}];
+indexes_S_R1R2R3 =[indexes_S{1};indexes_S{2};indexes_S{3}];
+
+xmov_S_R2R3R4 =[movement_x_S{2};movement_x_S{3};movement_x_S{4}]; 
+xmov_S_R1R3R4 =[movement_x_S{1};movement_x_S{3};movement_x_S{4}];
+xmov_S_R1R2R4 =[movement_x_S{1};movement_x_S{2};movement_x_S{4}];
+xmov_S_R1R2R3 =[movement_x_S{1};movement_x_S{2};movement_x_S{3}];
+
+ymov_S_R2R3R4 =[movement_y_S{2};movement_y_S{3};movement_y_S{4}]; 
+ymov_S_R1R3R4 =[movement_y_S{1};movement_y_S{3};movement_y_S{4}];
+ymov_S_R1R2R4 =[movement_y_S{1};movement_y_S{2};movement_y_S{4}];
+ymov_S_R1R2R3 =[movement_y_S{1};movement_y_S{2};movement_y_S{3}];
+
+zmov_S_R2R3R4 =[movement_z_S{2};movement_z_S{3};movement_z_S{4}]; 
+zmov_S_R1R3R4 =[movement_z_S{1};movement_z_S{3};movement_z_S{4}];
+zmov_S_R1R2R4 =[movement_z_S{1};movement_z_S{2};movement_z_S{4}];
+zmov_S_R1R2R3 =[movement_z_S{1};movement_z_S{2};movement_z_S{3}];
+
+tmov_S_R2R3R4 =[movement_total_S{2};movement_total_S{3};movement_total_S{4}]; 
+tmov_S_R1R3R4 =[movement_total_S{1};movement_total_S{3};movement_total_S{4}];
+tmov_S_R1R2R4 =[movement_total_S{1};movement_total_S{2};movement_total_S{4}];
+tmov_S_R1R2R3 =[movement_total_S{1};movement_total_S{2};movement_total_S{3}];
 
 % Number of iteracions in bootstrap
 numBootstraps = 1000;
@@ -170,45 +227,198 @@ ALPHA = 0.01;
 % confidence interval 
 % within recordings of shirt L
 % R1 vs {R2, R3, R4}
-CI_mean_L_R1vsR2R3R4 = statDifferenceCI(indexes_L{1}, data_L_R2R3R4, numBootstraps, ALPHA, 'mean');
-CI_median_L_R1vsR2R3R4 = statDifferenceCI(indexes_L{1}, data_L_R2R3R4, numBootstraps, ALPHA, 'median');
+CI_indexes_mean_L_R1vsR2R3R4 = statDifferenceCI(indexes_L{1}, indexes_L_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_indexes_median_L_R1vsR2R3R4 = statDifferenceCI(indexes_L{1}, indexes_L_R2R3R4, numBootstraps, ALPHA, 'median');
+
+CI_xmov_mean_L_R1vsR2R3R4 = statDifferenceCI(movement_x_L{1}, xmov_L_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_xmov_median_L_R1vsR2R3R4 = statDifferenceCI(movement_x_L{1}, xmov_L_R2R3R4, numBootstraps, ALPHA, 'median');
+
+CI_ymov_mean_L_R1vsR2R3R4 = statDifferenceCI(movement_y_L{1}, ymov_L_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_ymov_median_L_R1vsR2R3R4 = statDifferenceCI(movement_y_L{1}, ymov_L_R2R3R4, numBootstraps, ALPHA, 'median');
+
+CI_zmov_mean_L_R1vsR2R3R4 = statDifferenceCI(movement_z_L{1}, zmov_L_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_zmov_median_L_R1vsR2R3R4 = statDifferenceCI(movement_z_L{1}, zmov_L_R2R3R4, numBootstraps, ALPHA, 'median');
+
+CI_tmov_mean_L_R1vsR2R3R4 = statDifferenceCI(movement_total_L{1}, tmov_L_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_tmov_median_L_R1vsR2R3R4 = statDifferenceCI(movement_total_L{1}, tmov_L_R2R3R4, numBootstraps, ALPHA, 'median');
+
 % R2 vs {R1, R3, R4}
-CI_mean_L_R2vsR1R3R4 = statDifferenceCI(indexes_L{2}, data_L_R1R3R4, numBootstraps, ALPHA, 'mean');
-CI_median_L_R2vsR1R3R4 = statDifferenceCI(indexes_L{2}, data_L_R1R3R4, numBootstraps, ALPHA, 'median');
+CI_indexes_mean_L_R2vsR1R3R4 = statDifferenceCI(indexes_L{2}, indexes_L_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_indexes_median_L_R2vsR1R3R4 = statDifferenceCI(indexes_L{2}, indexes_L_R1R3R4, numBootstraps, ALPHA, 'median');
+
+CI_xmov_mean_L_R2vsR1R3R4 = statDifferenceCI(movement_x_L{2}, xmov_L_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_xmov_median_L_R2vsR1R3R4 = statDifferenceCI(movement_x_L{2}, xmov_L_R1R3R4, numBootstraps, ALPHA, 'median');
+
+CI_ymov_mean_L_R2vsR1R3R4 = statDifferenceCI(movement_y_L{2}, ymov_L_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_ymov_median_L_R2vsR1R3R4 = statDifferenceCI(movement_y_L{2}, ymov_L_R1R3R4, numBootstraps, ALPHA, 'median');
+
+CI_zmov_mean_L_R2vsR1R3R4 = statDifferenceCI(movement_z_L{2}, zmov_L_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_zmov_median_L_R2vsR1R3R4 = statDifferenceCI(movement_z_L{2}, zmov_L_R1R3R4, numBootstraps, ALPHA, 'median');
+
+CI_tmov_mean_L_R2vsR1R3R4 = statDifferenceCI(movement_total_L{2}, tmov_L_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_tmov_median_L_R2vsR1R3R4 = statDifferenceCI(movement_total_L{2}, tmov_L_R1R3R4, numBootstraps, ALPHA, 'median');
+
 % R3 vs {R1, R2, R4}
-CI_mean_L_R3vsR1R2R4 = statDifferenceCI(indexes_L{3}, data_L_R1R2R4, numBootstraps, ALPHA, 'mean');
-CI_median_L_R3vsR1R2R4 = statDifferenceCI(indexes_L{3}, data_L_R1R2R4, numBootstraps, ALPHA, 'median');
+CI_indexes_mean_L_R3vsR1R2R4 = statDifferenceCI(indexes_L{3}, indexes_L_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_indexes_median_L_R3vsR1R2R4 = statDifferenceCI(indexes_L{3}, indexes_L_R1R2R4, numBootstraps, ALPHA, 'median');
+
+CI_xmov_mean_L_R3vsR1R2R4 = statDifferenceCI(movement_x_L{3}, xmov_L_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_xmov_median_L_R3vsR1R2R4 = statDifferenceCI(movement_x_L{3}, xmov_L_R1R2R4, numBootstraps, ALPHA, 'median');
+
+CI_ymov_mean_L_R3vsR1R2R4 = statDifferenceCI(movement_y_L{3}, ymov_L_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_ymov_median_L_R3vsR1R2R4 = statDifferenceCI(movement_y_L{3}, ymov_L_R1R2R4, numBootstraps, ALPHA, 'median');
+
+CI_zmov_mean_L_R3vsR1R2R4 = statDifferenceCI(movement_z_L{3}, zmov_L_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_zmov_median_L_R3vsR1R2R4 = statDifferenceCI(movement_z_L{3}, zmov_L_R1R2R4, numBootstraps, ALPHA, 'median');
+
+CI_tmov_mean_L_R3vsR1R2R4 = statDifferenceCI(movement_total_L{3}, tmov_L_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_tmov_median_L_R3vsR1R2R4 = statDifferenceCI(movement_total_L{3}, tmov_L_R1R2R4, numBootstraps, ALPHA, 'median');
+
 % R4 vs {R1, R2, R3}
-CI_mean_L_R4vsR1R2R3 = statDifferenceCI(indexes_L{4}, data_L_R1R2R3, numBootstraps, ALPHA, 'mean');
-CI_median_L_R4vsR1R2R3 = statDifferenceCI(indexes_L{4}, data_L_R1R2R3, numBootstraps, ALPHA, 'median');
+CI_indexes_mean_L_R4vsR1R2R3 = statDifferenceCI(indexes_L{4}, indexes_L_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_indexes_median_L_R4vsR1R2R3 = statDifferenceCI(indexes_L{4}, indexes_L_R1R2R3, numBootstraps, ALPHA, 'median');
+
+CI_xmov_mean_L_R4vsR1R2R3 = statDifferenceCI(movement_x_L{4}, xmov_L_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_xmov_median_L_R4vsR1R2R3 = statDifferenceCI(movement_x_L{4}, xmov_L_R1R2R3, numBootstraps, ALPHA, 'median');
+
+CI_ymov_mean_L_R4vsR1R2R3 = statDifferenceCI(movement_y_L{4}, ymov_L_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_ymov_median_L_R4vsR1R2R3 = statDifferenceCI(movement_y_L{4}, ymov_L_R1R2R3, numBootstraps, ALPHA, 'median');
+
+CI_zmov_mean_L_R4vsR1R2R3 = statDifferenceCI(movement_z_L{4}, zmov_L_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_zmov_median_L_R4vsR1R2R3 = statDifferenceCI(movement_z_L{4}, zmov_L_R1R2R3, numBootstraps, ALPHA, 'median');
+
+CI_tmov_mean_L_R4vsR1R2R3 = statDifferenceCI(movement_total_L{4}, tmov_L_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_tmov_median_L_R4vsR1R2R3 = statDifferenceCI(movement_total_L{4}, tmov_L_R1R2R3, numBootstraps, ALPHA, 'median');
 
 % within recordings of shirt M
 % R1 vs {R2, R3, R4}
-CI_mean_M_R1vsR2R3R4 = statDifferenceCI(indexes_M{1}, data_M_R2R3R4, numBootstraps, ALPHA, 'mean');
-CI_median_M_R1vsR2R3R4 = statDifferenceCI(indexes_M{1}, data_M_R2R3R4, numBootstraps, ALPHA, 'median');
+CI_indexes_mean_M_R1vsR2R3R4 = statDifferenceCI(indexes_M{1}, indexes_M_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_indexes_median_M_R1vsR2R3R4 = statDifferenceCI(indexes_M{1}, indexes_M_R2R3R4, numBootstraps, ALPHA, 'median');
+
+CI_xmov_mean_M_R1vsR2R3R4 = statDifferenceCI(movement_x_M{1}, xmov_M_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_xmov_median_M_R1vsR2R3R4 = statDifferenceCI(movement_x_M{1}, xmov_M_R2R3R4, numBootstraps, ALPHA, 'median');
+
+CI_ymov_mean_M_R1vsR2R3R4 = statDifferenceCI(movement_y_M{1}, ymov_M_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_ymov_median_M_R1vsR2R3R4 = statDifferenceCI(movement_y_M{1}, ymov_M_R2R3R4, numBootstraps, ALPHA, 'median');
+
+CI_zmov_mean_M_R1vsR2R3R4 = statDifferenceCI(movement_z_M{1}, zmov_M_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_zmov_median_M_R1vsR2R3R4 = statDifferenceCI(movement_z_M{1}, zmov_M_R2R3R4, numBootstraps, ALPHA, 'median');
+
+CI_tmov_mean_M_R1vsR2R3R4 = statDifferenceCI(movement_total_M{1}, tmov_M_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_tmov_median_M_R1vsR2R3R4 = statDifferenceCI(movement_total_M{1}, tmov_M_R2R3R4, numBootstraps, ALPHA, 'median');
+
 % R2 vs {R1, R3, R4}
-CI_mean_M_R2vsR1R3R4 = statDifferenceCI(indexes_M{2}, data_M_R1R3R4, numBootstraps, ALPHA, 'mean');
-CI_median_M_R2vsR1R3R4 = statDifferenceCI(indexes_M{2}, data_M_R1R3R4, numBootstraps, ALPHA, 'median');
+CI_indexes_mean_M_R2vsR1R3R4 = statDifferenceCI(indexes_M{2}, indexes_M_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_indexes_median_M_R2vsR1R3R4 = statDifferenceCI(indexes_M{2}, indexes_M_R1R3R4, numBootstraps, ALPHA, 'median');
+
+CI_xmov_mean_M_R2vsR1R3R4 = statDifferenceCI(movement_x_M{2}, xmov_M_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_xmov_median_M_R2vsR1R3R4 = statDifferenceCI(movement_x_M{2}, xmov_M_R1R3R4, numBootstraps, ALPHA, 'median');
+
+CI_ymov_mean_M_R2vsR1R3R4 = statDifferenceCI(movement_y_M{2}, ymov_M_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_ymov_median_M_R2vsR1R3R4 = statDifferenceCI(movement_y_M{2}, ymov_M_R1R3R4, numBootstraps, ALPHA, 'median');
+
+CI_zmov_mean_M_R2vsR1R3R4 = statDifferenceCI(movement_z_M{2}, zmov_M_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_zmov_median_M_R2vsR1R3R4 = statDifferenceCI(movement_z_M{2}, zmov_M_R1R3R4, numBootstraps, ALPHA, 'median');
+
+CI_tmov_mean_M_R2vsR1R3R4 = statDifferenceCI(movement_total_M{2}, tmov_M_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_tmov_median_M_R2vsR1R3R4 = statDifferenceCI(movement_total_M{2}, tmov_M_R1R3R4, numBootstraps, ALPHA, 'median');
+
 % R3 vs {R1, R2, R4}
-CI_mean_M_R3vsR1R2R4 = statDifferenceCI(indexes_M{3}, data_M_R1R2R4, numBootstraps, ALPHA, 'mean');
-CI_median_M_R3vsR1R2R4 = statDifferenceCI(indexes_M{3}, data_M_R1R2R4, numBootstraps, ALPHA, 'median');
+CI_indexes_mean_M_R3vsR1R2R4 = statDifferenceCI(indexes_M{3}, indexes_M_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_indexes_median_M_R3vsR1R2R4 = statDifferenceCI(indexes_M{3}, indexes_M_R1R2R4, numBootstraps, ALPHA, 'median');
+
+CI_xmov_mean_M_R3vsR1R2R4 = statDifferenceCI(movement_x_M{3}, xmov_M_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_xmov_median_M_R3vsR1R2R4 = statDifferenceCI(movement_x_M{3}, xmov_M_R1R2R4, numBootstraps, ALPHA, 'median');
+
+CI_ymov_mean_M_R3vsR1R2R4 = statDifferenceCI(movement_y_M{3}, ymov_M_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_ymov_median_M_R3vsR1R2R4 = statDifferenceCI(movement_y_M{3}, ymov_M_R1R2R4, numBootstraps, ALPHA, 'median');
+
+CI_zmov_mean_M_R3vsR1R2R4 = statDifferenceCI(movement_z_M{3}, zmov_M_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_zmov_median_M_R3vsR1R2R4 = statDifferenceCI(movement_z_M{3}, zmov_M_R1R2R4, numBootstraps, ALPHA, 'median');
+
+CI_tmov_mean_M_R3vsR1R2R4 = statDifferenceCI(movement_total_M{3}, tmov_M_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_tmov_median_M_R3vsR1R2R4 = statDifferenceCI(movement_total_M{3}, tmov_M_R1R2R4, numBootstraps, ALPHA, 'median');
+
 % R4 vs {R1, R2, R3}
-CI_mean_M_R4vsR1R2R3 = statDifferenceCI(indexes_M{4}, data_M_R1R2R3, numBootstraps, ALPHA, 'mean');
-CI_median_M_R4vsR1R2R3 = statDifferenceCI(indexes_M{4}, data_M_R1R2R3, numBootstraps, ALPHA, 'median');
+CI_indexes_mean_M_R4vsR1R2R3 = statDifferenceCI(indexes_M{4}, indexes_M_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_indexes_median_M_R4vsR1R2R3 = statDifferenceCI(indexes_M{4}, indexes_M_R1R2R3, numBootstraps, ALPHA, 'median');
+
+CI_xmov_mean_M_R4vsR1R2R3 = statDifferenceCI(movement_x_M{4}, xmov_M_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_xmov_median_M_R4vsR1R2R3 = statDifferenceCI(movement_x_M{4}, xmov_M_R1R2R3, numBootstraps, ALPHA, 'median');
+
+CI_ymov_mean_M_R4vsR1R2R3 = statDifferenceCI(movement_y_M{4}, ymov_M_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_ymov_median_M_R4vsR1R2R3 = statDifferenceCI(movement_y_M{4}, ymov_M_R1R2R3, numBootstraps, ALPHA, 'median');
+
+CI_zmov_mean_M_R4vsR1R2R3 = statDifferenceCI(movement_z_M{4}, zmov_M_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_zmov_median_M_R4vsR1R2R3 = statDifferenceCI(movement_z_M{4}, zmov_M_R1R2R3, numBootstraps, ALPHA, 'median');
+
+CI_tmov_mean_M_R4vsR1R2R3 = statDifferenceCI(movement_total_M{4}, tmov_M_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_tmov_median_M_R4vsR1R2R3 = statDifferenceCI(movement_total_M{4}, tmov_M_R1R2R3, numBootstraps, ALPHA, 'median');
 
 % within recordings of shirt S
 % R1 vs {R2, R3, R4}
-CI_mean_S_R1vsR2R3R4 = statDifferenceCI(indexes_S{1}, data_S_R2R3R4, numBootstraps, ALPHA, 'mean');
-CI_median_S_R1vsR2R3R4 = statDifferenceCI(indexes_S{1}, data_S_R2R3R4, numBootstraps, ALPHA, 'median');
+CI_indexes_mean_S_R1vsR2R3R4 = statDifferenceCI(indexes_S{1}, indexes_S_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_indexes_median_S_R1vsR2R3R4 = statDifferenceCI(indexes_S{1}, indexes_S_R2R3R4, numBootstraps, ALPHA, 'median');
+
+CI_xmov_mean_S_R1vsR2R3R4 = statDifferenceCI(movement_x_S{1}, xmov_S_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_xmov_median_S_R1vsR2R3R4 = statDifferenceCI(movement_x_S{1}, xmov_S_R2R3R4, numBootstraps, ALPHA, 'median');
+
+CI_ymov_mean_S_R1vsR2R3R4 = statDifferenceCI(movement_y_S{1}, ymov_S_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_ymov_median_S_R1vsR2R3R4 = statDifferenceCI(movement_y_S{1}, ymov_S_R2R3R4, numBootstraps, ALPHA, 'median');
+
+CI_zmov_mean_S_R1vsR2R3R4 = statDifferenceCI(movement_z_S{1}, zmov_S_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_zmov_median_S_R1vsR2R3R4 = statDifferenceCI(movement_z_S{1}, zmov_S_R2R3R4, numBootstraps, ALPHA, 'median');
+
+CI_tmov_mean_S_R1vsR2R3R4 = statDifferenceCI(movement_total_S{1}, tmov_S_R2R3R4, numBootstraps, ALPHA, 'mean');
+CI_tmov_median_S_R1vsR2R3R4 = statDifferenceCI(movement_total_S{1}, tmov_S_R2R3R4, numBootstraps, ALPHA, 'median');
+
 % R2 vs {R1, R3, R4}
-CI_mean_S_R2vsR1R3R4 = statDifferenceCI(indexes_S{2}, data_S_R1R3R4, numBootstraps, ALPHA, 'mean');
-CI_median_S_R2vsR1R3R4 = statDifferenceCI(indexes_S{2}, data_S_R1R3R4, numBootstraps, ALPHA, 'median');
+CI_indexes_mean_S_R2vsR1R3R4 = statDifferenceCI(indexes_S{2}, indexes_S_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_indexes_median_S_R2vsR1R3R4 = statDifferenceCI(indexes_S{2}, indexes_S_R1R3R4, numBootstraps, ALPHA, 'median');
+
+CI_xmov_mean_S_R2vsR1R3R4 = statDifferenceCI(movement_x_S{2}, xmov_S_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_xmov_median_S_R2vsR1R3R4 = statDifferenceCI(movement_x_S{2}, xmov_S_R1R3R4, numBootstraps, ALPHA, 'median');
+
+CI_ymov_mean_S_R2vsR1R3R4 = statDifferenceCI(movement_y_S{2}, ymov_S_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_ymov_median_S_R2vsR1R3R4 = statDifferenceCI(movement_y_S{2}, ymov_S_R1R3R4, numBootstraps, ALPHA, 'median');
+
+CI_zmov_mean_S_R2vsR1R3R4 = statDifferenceCI(movement_z_S{2}, zmov_S_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_zmov_median_S_R2vsR1R3R4 = statDifferenceCI(movement_z_S{2}, zmov_S_R1R3R4, numBootstraps, ALPHA, 'median');
+
+CI_tmov_mean_S_R2vsR1R3R4 = statDifferenceCI(movement_total_S{2}, tmov_S_R1R3R4, numBootstraps, ALPHA, 'mean');
+CI_tmov_median_S_R2vsR1R3R4 = statDifferenceCI(movement_total_S{2}, tmov_S_R1R3R4, numBootstraps, ALPHA, 'median');
+
 % R3 vs {R1, R2, R4}
-CI_mean_S_R3vsR1R2R4 = statDifferenceCI(indexes_S{3}, data_S_R1R2R4, numBootstraps, ALPHA, 'mean');
-CI_median_S_R3vsR1R2R4 = statDifferenceCI(indexes_S{3}, data_S_R1R2R4, numBootstraps, ALPHA, 'median');
+CI_indexes_mean_S_R3vsR1R2R4 = statDifferenceCI(indexes_S{3}, indexes_S_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_indexes_median_S_R3vsR1R2R4 = statDifferenceCI(indexes_S{3}, indexes_S_R1R2R4, numBootstraps, ALPHA, 'median');
+
+CI_xmov_mean_S_R3vsR1R2R4 = statDifferenceCI(movement_x_S{3}, xmov_S_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_xmov_median_S_R3vsR1R2R4 = statDifferenceCI(movement_x_S{3}, xmov_S_R1R2R4, numBootstraps, ALPHA, 'median');
+
+CI_ymov_mean_S_R3vsR1R2R4 = statDifferenceCI(movement_y_S{3}, ymov_S_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_ymov_median_S_R3vsR1R2R4 = statDifferenceCI(movement_y_S{3}, ymov_S_R1R2R4, numBootstraps, ALPHA, 'median');
+
+CI_zmov_mean_S_R3vsR1R2R4 = statDifferenceCI(movement_z_S{3}, zmov_S_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_zmov_median_S_R3vsR1R2R4 = statDifferenceCI(movement_z_S{3}, zmov_S_R1R2R4, numBootstraps, ALPHA, 'median');
+
+CI_tmov_mean_S_R3vsR1R2R4 = statDifferenceCI(movement_total_S{3}, tmov_S_R1R2R4, numBootstraps, ALPHA, 'mean');
+CI_tmov_median_S_R3vsR1R2R4 = statDifferenceCI(movement_total_S{3}, tmov_S_R1R2R4, numBootstraps, ALPHA, 'median');
+
 % R4 vs {R1, R2, R3}
-CI_mean_S_R4vsR1R2R3 = statDifferenceCI(indexes_S{4}, data_S_R1R2R3, numBootstraps, ALPHA, 'mean');
-CI_median_S_R4vsR1R2R3 = statDifferenceCI(indexes_S{4}, data_S_R1R2R3, numBootstraps, ALPHA, 'median');
+CI_indexes_mean_S_R4vsR1R2R3 = statDifferenceCI(indexes_S{4}, indexes_S_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_indexes_median_S_R4vsR1R2R3 = statDifferenceCI(indexes_S{4}, indexes_S_R1R2R3, numBootstraps, ALPHA, 'median');
+
+CI_xmov_mean_S_R4vsR1R2R3 = statDifferenceCI(movement_x_S{4}, xmov_S_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_xmov_median_S_R4vsR1R2R3 = statDifferenceCI(movement_x_S{4}, xmov_S_R1R2R3, numBootstraps, ALPHA, 'median');
+
+CI_ymov_mean_S_R4vsR1R2R3 = statDifferenceCI(movement_y_S{4}, ymov_S_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_ymov_median_S_R4vsR1R2R3 = statDifferenceCI(movement_y_S{4}, ymov_S_R1R2R3, numBootstraps, ALPHA, 'median');
+
+CI_zmov_mean_S_R4vsR1R2R3 = statDifferenceCI(movement_z_S{4}, zmov_S_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_zmov_median_S_R4vsR1R2R3 = statDifferenceCI(movement_z_S{4}, zmov_S_R1R2R3, numBootstraps, ALPHA, 'median');
+
+CI_tmov_mean_S_R4vsR1R2R3 = statDifferenceCI(movement_total_S{4}, tmov_S_R1R2R3, numBootstraps, ALPHA, 'mean');
+CI_tmov_median_S_R4vsR1R2R3 = statDifferenceCI(movement_total_S{4}, tmov_S_R1R2R3, numBootstraps, ALPHA, 'median');
 
 % between each shirt
 mean_indexes_L_vs_M = statDifferenceCI([indexes_L{1};indexes_L{2};indexes_L{3};indexes_L{4}], [indexes_M{1};indexes_M{2};indexes_M{3};indexes_M{4}], numBootstraps, ALPHA, 'mean');
@@ -219,6 +429,46 @@ median_indexes_L_vs_S = statDifferenceCI([indexes_L{1};indexes_L{2};indexes_L{3}
 
 mean_indexes_M_vs_S = statDifferenceCI([indexes_M{1};indexes_M{2};indexes_M{3};indexes_M{4}], [indexes_S{1};indexes_S{2};indexes_S{3};indexes_S{4}], numBootstraps, ALPHA, 'mean');
 median_indexes_M_vs_S = statDifferenceCI([indexes_M{1};indexes_M{2};indexes_M{3};indexes_M{4}], [indexes_S{1};indexes_S{2};indexes_S{3};indexes_S{4}], numBootstraps, ALPHA, 'median');
+
+
+mean_xmov_L_vs_M = statDifferenceCI([movement_x_L{1};movement_x_L{2};movement_x_L{3};movement_x_L{4}], [movement_x_M{1};movement_x_M{2};movement_x_M{3};movement_x_M{4}], numBootstraps, ALPHA, 'mean');
+median_xmov_L_vs_M = statDifferenceCI([movement_x_L{1};movement_x_L{2};movement_x_L{3};movement_x_L{4}], [movement_x_M{1};movement_x_M{2};movement_x_M{3};movement_x_M{4}], numBootstraps, ALPHA, 'median');
+
+mean_xmov_L_vs_S = statDifferenceCI([movement_x_L{1};movement_x_L{2};movement_x_L{3};movement_x_L{4}], [movement_x_S{1};movement_x_S{2};movement_x_S{3};movement_x_S{4}], numBootstraps, ALPHA, 'mean');
+median_xmov_L_vs_S = statDifferenceCI([movement_x_L{1};movement_x_L{2};movement_x_L{3};movement_x_L{4}], [movement_x_S{1};movement_x_S{2};movement_x_S{3};movement_x_S{4}], numBootstraps, ALPHA, 'median');
+
+mean_xmov_M_vs_S = statDifferenceCI([movement_x_M{1};movement_x_M{2};movement_x_M{3};movement_x_M{4}], [movement_x_S{1};movement_x_S{2};movement_x_S{3};movement_x_S{4}], numBootstraps, ALPHA, 'mean');
+median_xmov_M_vs_S = statDifferenceCI([movement_x_M{1};movement_x_M{2};movement_x_M{3};movement_x_M{4}], [movement_x_S{1};movement_x_S{2};movement_x_S{3};movement_x_S{4}], numBootstraps, ALPHA, 'median');
+
+
+mean_ymov_L_vs_M = statDifferenceCI([movement_y_L{1};movement_y_L{2};movement_y_L{3};movement_y_L{4}], [movement_y_M{1};movement_y_M{2};movement_y_M{3};movement_y_M{4}], numBootstraps, ALPHA, 'mean');
+median_ymov_L_vs_M = statDifferenceCI([movement_y_L{1};movement_y_L{2};movement_y_L{3};movement_y_L{4}], [movement_y_M{1};movement_y_M{2};movement_y_M{3};movement_y_M{4}], numBootstraps, ALPHA, 'median');
+
+mean_ymov_L_vs_S = statDifferenceCI([movement_y_L{1};movement_y_L{2};movement_y_L{3};movement_y_L{4}], [movement_y_S{1};movement_y_S{2};movement_y_S{3};movement_y_S{4}], numBootstraps, ALPHA, 'mean');
+median_ymov_L_vs_S = statDifferenceCI([movement_y_L{1};movement_y_L{2};movement_y_L{3};movement_y_L{4}], [movement_y_S{1};movement_y_S{2};movement_y_S{3};movement_y_S{4}], numBootstraps, ALPHA, 'median');
+
+mean_ymov_M_vs_S = statDifferenceCI([movement_y_M{1};movement_y_M{2};movement_y_M{3};movement_y_M{4}], [movement_y_S{1};movement_y_S{2};movement_y_S{3};movement_y_S{4}], numBootstraps, ALPHA, 'mean');
+median_ymov_M_vs_S = statDifferenceCI([movement_y_M{1};movement_y_M{2};movement_y_M{3};movement_y_M{4}], [movement_y_S{1};movement_y_S{2};movement_y_S{3};movement_y_S{4}], numBootstraps, ALPHA, 'median');
+
+
+mean_zmov_L_vs_M = statDifferenceCI([movement_z_L{1};movement_z_L{2};movement_z_L{3};movement_z_L{4}], [movement_z_M{1};movement_z_M{2};movement_z_M{3};movement_z_M{4}], numBootstraps, ALPHA, 'mean');
+median_zmov_L_vs_M = statDifferenceCI([movement_z_L{1};movement_z_L{2};movement_z_L{3};movement_z_L{4}], [movement_z_M{1};movement_z_M{2};movement_z_M{3};movement_z_M{4}], numBootstraps, ALPHA, 'median');
+
+mean_zmov_L_vs_S = statDifferenceCI([movement_z_L{1};movement_z_L{2};movement_z_L{3};movement_z_L{4}], [movement_z_S{1};movement_z_S{2};movement_z_S{3};movement_z_S{4}], numBootstraps, ALPHA, 'mean');
+median_zmov_L_vs_S = statDifferenceCI([movement_z_L{1};movement_z_L{2};movement_z_L{3};movement_z_L{4}], [movement_z_S{1};movement_z_S{2};movement_z_S{3};movement_z_S{4}], numBootstraps, ALPHA, 'median');
+
+mean_zmov_M_vs_S = statDifferenceCI([movement_z_M{1};movement_z_M{2};movement_z_M{3};movement_z_M{4}], [movement_z_S{1};movement_z_S{2};movement_z_S{3};movement_z_S{4}], numBootstraps, ALPHA, 'mean');
+median_zmov_M_vs_S = statDifferenceCI([movement_z_M{1};movement_z_M{2};movement_z_M{3};movement_z_M{4}], [movement_z_S{1};movement_z_S{2};movement_z_S{3};movement_z_S{4}], numBootstraps, ALPHA, 'median');
+
+
+mean_tmov_L_vs_M = statDifferenceCI([movement_total_L{1};movement_total_L{2};movement_total_L{3};movement_total_L{4}], [movement_total_M{1};movement_total_M{2};movement_total_M{3};movement_total_M{4}], numBootstraps, ALPHA, 'mean');
+median_tmov_L_vs_M = statDifferenceCI([movement_total_L{1};movement_total_L{2};movement_total_L{3};movement_total_L{4}], [movement_total_M{1};movement_total_M{2};movement_total_M{3};movement_total_M{4}], numBootstraps, ALPHA, 'median');
+
+mean_tmov_L_vs_S = statDifferenceCI([movement_total_L{1};movement_total_L{2};movement_total_L{3};movement_total_L{4}], [movement_total_S{1};movement_total_S{2};movement_total_S{3};movement_total_S{4}], numBootstraps, ALPHA, 'mean');
+median_tmov_L_vs_S = statDifferenceCI([movement_total_L{1};movement_total_L{2};movement_total_L{3};movement_total_L{4}], [movement_total_S{1};movement_total_S{2};movement_total_S{3};movement_total_S{4}], numBootstraps, ALPHA, 'median');
+
+mean_tmov_M_vs_S = statDifferenceCI([movement_total_M{1};movement_total_M{2};movement_total_M{3};movement_total_M{4}], [movement_total_S{1};movement_total_S{2};movement_total_S{3};movement_total_S{4}], numBootstraps, ALPHA, 'mean');
+median_tmov_M_vs_S = statDifferenceCI([movement_total_M{1};movement_total_M{2};movement_total_M{3};movement_total_M{4}], [movement_total_S{1};movement_total_S{2};movement_total_S{3};movement_total_S{4}], numBootstraps, ALPHA, 'median');
 
 % mean of each recording 
 mean_indexes_L = cellfun(@mean, indexes_L);
@@ -241,26 +491,26 @@ mean_movement_total_L = cellfun(@mean, movement_total_L);
 mean_movement_total_M = cellfun(@mean, movement_total_M);
 mean_movement_total_S = cellfun(@mean, movement_total_S);
 
-% deviation of each recording
-var_indexes_L = cellfun(@var, indexes_L);
-var_indexes_M = cellfun(@var, indexes_M);
-var_indexes_S = cellfun(@var, indexes_S);
+% standard deviation of each recording
+std_indexes_L = cellfun(@std, indexes_L);
+std_indexes_M = cellfun(@std, indexes_M);
+std_indexes_S = cellfun(@std, indexes_S);
 
-var_movement_x_L = cellfun(@var, movement_x_L);
-var_movement_x_M = cellfun(@var, movement_x_M);
-var_movement_x_S = cellfun(@var, movement_x_S);
+std_movement_x_L = cellfun(@std, movement_x_L);
+std_movement_x_M = cellfun(@std, movement_x_M);
+std_movement_x_S = cellfun(@std, movement_x_S);
 
-var_movement_y_L = cellfun(@var, movement_y_L);
-var_movement_y_M = cellfun(@var, movement_y_M);
-var_movement_y_S = cellfun(@var, movement_y_S);
+std_movement_y_L = cellfun(@std, movement_y_L);
+std_movement_y_M = cellfun(@std, movement_y_M);
+std_movement_y_S = cellfun(@std, movement_y_S);
 
-var_movement_z_L = cellfun(@var, movement_z_L);
-var_movement_z_M = cellfun(@var, movement_z_M);
-var_movement_z_S = cellfun(@var, movement_z_S);
+std_movement_z_L = cellfun(@std, movement_z_L);
+std_movement_z_M = cellfun(@std, movement_z_M);
+std_movement_z_S = cellfun(@std, movement_z_S);
 
-var_movement_total_L = cellfun(@var, movement_total_L);
-var_movement_total_M = cellfun(@var, movement_total_M);
-var_movement_total_S = cellfun(@var, movement_total_S);
+std_movement_total_L = cellfun(@std, movement_total_L);
+std_movement_total_M = cellfun(@std, movement_total_M);
+std_movement_total_S = cellfun(@std, movement_total_S);
 
 
 
