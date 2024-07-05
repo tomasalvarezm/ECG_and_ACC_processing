@@ -37,24 +37,24 @@ for setIndex = 1:length(indexes)
         
         if numColumns == 5
             indexes{setIndex}{fileIndex} = data.data(:, 1);
-            movement_x_chest{setIndex}{fileIndex} = sqrt(data.data(:, 2))/10000;
-            movement_y_chest{setIndex}{fileIndex} = sqrt(data.data(:, 3))/10000;
-            movement_z_chest{setIndex}{fileIndex} = sqrt(data.data(:, 4))/10000;
-            movement_total_chest{setIndex}{fileIndex} = sqrt(data.data(:, 5))/10000;
+            movement_x_chest{setIndex}{fileIndex} = data.data(:, 2);
+            movement_y_chest{setIndex}{fileIndex} = data.data(:, 3);
+            movement_z_chest{setIndex}{fileIndex} = data.data(:, 4);
+            movement_total_chest{setIndex}{fileIndex} = data.data(:, 5);
 
             plot_movement_vs_ecg(indexes{setIndex}{fileIndex}, movement_x_chest{setIndex}{fileIndex}, movement_y_chest{setIndex}{fileIndex}, ...
                 movement_z_chest{setIndex}{fileIndex}, movement_total_chest{setIndex}{fileIndex}, currentFiles{fileIndex});
         
         elseif numColumns == 9
             indexes{setIndex}{fileIndex} = data.data(:, 1);
-            movement_x_chest{setIndex}{fileIndex} = data.data(:, 4);
+            movement_x_chest{setIndex}{fileIndex} = data.data(:, 2);
             movement_y_chest{setIndex}{fileIndex} = data.data(:, 3);
-            movement_z_chest{setIndex}{fileIndex} = data.data(:, 2);
+            movement_z_chest{setIndex}{fileIndex} = data.data(:, 4);
             movement_total_chest{setIndex}{fileIndex} = data.data(:, 5);
             
-            movement_x_arm{setIndex}{fileIndex} = data.data(:, 8);
+            movement_x_arm{setIndex}{fileIndex} = data.data(:, 6);
             movement_y_arm{setIndex}{fileIndex} = data.data(:, 7);
-            movement_z_arm{setIndex}{fileIndex} = data.data(:, 6);
+            movement_z_arm{setIndex}{fileIndex} = data.data(:, 8);
             movement_total_arm{setIndex}{fileIndex} = data.data(:, 9);
             
             % Plot chest movement vs ecg
