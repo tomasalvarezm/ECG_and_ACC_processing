@@ -5,15 +5,19 @@
 % files_L = {'L_rec1_2024-05-28.txt', 'L_rec2_2024-06-03.txt', 'L_rec3_2024-06-06.txt', 'L_rec4_2024-06-11.txt'};
 
 files_M_mat2 = {'Mat2_rec1_2024-06-21.txt', 'Mat2_rec2_2024-06-22.txt', 'Mat2_rec3_2024-06-23.txt', 'Mat2_rec4_2024-06-24.txt'};
+% files_M_mat2 = {'Mat2_rec1_2024-06-21.txt'};
 
 samplingRate = 1000; % Hz
 ecgChannel = 3;
-accChannels = [4, 5, 6]; % z, y, x respectively
-accChannels_arm = [7, 8, 9]; % x, y, z respectively
+accChannels = [4, 5, 6]; % x, y, z respectively
+accChannels_arm = [7, 8, 9]; % z, y, x respectively
 
 %[Cmin, Cmax] = getCalibrationData('calibrationFile.txt', ecgChannel, accChannels);
-Cmin = [21352, 27328, 26844];
-Cmax = [43596, 39048, 45104];
+Cmin_chest = [21352, 27328, 26844];
+Cmax_chest = [43596, 39048, 45104];
+
+Cmin_arm = [26688, 26719, 27588];
+Cmax_arm = [37581, 38086, 38807];
 
 
 %% Process ecg and acc
@@ -44,14 +48,14 @@ for setIndex = 1:length(fileSets)
 
         % calibrating and filtrating accelerometer values 
         % axis number (1 for X, 2 for Y, 3 for Z)
-        accX_chest_filtered = calibrateRemoveGravity(accX_chest, Cmin(1), Cmax(1));
-        accY_chest_filtered = calibrateRemoveGravity(accY_chest, Cmin(2), Cmax(2));
-        accZ_chest_filtered = calibrateRemoveGravity(accZ_chest, Cmin(3), Cmax(3));
+        accX_chest_filtered = calibrateRemoveGravity(accX_chest, Cmin_chest(1), Cmax_chest(1));
+        accY_chest_filtered = calibrateRemoveGravity(accY_chest, Cmin_chest(2), Cmax_chest(2));
+        accZ_chest_filtered = calibrateRemoveGravity(accZ_chest, Cmin_chest(3), Cmax_chest(3));
         totalMovement_chest = calculateTotalMovement(accX_chest_filtered, accY_chest_filtered, accZ_chest_filtered);
 
-        accX_arm_filtered = calibrateRemoveGravity(accX_arm, Cmin(1), Cmax(1));
-        accY_arm_filtered = calibrateRemoveGravity(accY_arm, Cmin(2), Cmax(2));
-        accZ_arm_filtered = calibrateRemoveGravity(accZ_arm, Cmin(3), Cmax(3));
+        accX_arm_filtered = calibrateRemoveGravity(accX_arm, Cmin_arm(1), Cmax_arm(1));
+        accY_arm_filtered = calibrateRemoveGravity(accY_arm, Cmin_arm(2), Cmax_arm(2));
+        accZ_arm_filtered = calibrateRemoveGravity(accZ_arm, Cmin_arm(3), Cmax_arm(3));
         totalMovement_arm = calculateTotalMovement(accX_arm_filtered, accY_arm_filtered, accZ_arm_filtered);
 
         % processing accelerometer values
@@ -66,10 +70,10 @@ for setIndex = 1:length(fileSets)
         totalMovement_arm_quantified = quantifyMovement(totalMovement_arm, samplingRate);
 
         % processing electrocardiogram values
-        [kSQI_01_vector, sSQI_01_vector, pSQI_01_vector, rel_powerLine01_vector, cSQI_01_vector, basSQI_01_vector, dSQI_01_vector, geometricMean_vector, averageGeometricMean] = mSQI(ecg, samplingRate);
+        %[kSQI_01_vector, sSQI_01_vector, pSQI_01_vector, rel_powerLine01_vector, cSQI_01_vector, basSQI_01_vector, dSQI_01_vector, geometricMean_vector, averageGeometricMean] = mSQI(ecg, samplingRate);
         
         % combine vectors into a single matrix
-        combinedData = [geometricMean_vector', accX_chest_quantified, accY_chest_quantified, accZ_chest_quantified, totalMovement_chest_quantified, accX_arm_quantified, accY_arm_quantified, accZ_arm_quantified, totalMovement_arm_quantified];
+        combinedData = [accX_chest_quantified, accX_chest_quantified, accY_chest_quantified, accZ_chest_quantified, totalMovement_chest_quantified, accX_arm_quantified, accY_arm_quantified, accZ_arm_quantified, totalMovement_arm_quantified];
         
         % write and save processed data to a file
         outputFileName = ['processedData_' currentFiles{fileIndex}];
