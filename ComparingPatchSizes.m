@@ -57,6 +57,145 @@ movement_y_S = movement_y{3};
 movement_z_S = movement_z{3};
 movement_total_S = movement_total{3};
 
+% analysis by hour size L
+% indexes_L_R1 = separateInHours(indexes_L{1});
+% indexes_L_R2 = separateInHours(indexes_L{2});
+% indexes_L_R3 = separateInHours(indexes_L{3});
+% indexes_L_R4 = separateInHours(indexes_L{4});
+% 
+% xmov_L_R1 = separateInHours(movement_x_L{1});
+% xmov_L_R2 = separateInHours(movement_x_L{2});
+% xmov_L_R3 = separateInHours(movement_x_L{3});
+% xmov_L_R4 = separateInHours(movement_x_L{4});
+% 
+% ymov_L_R1 = separateInHours(movement_y_L{1});
+% ymov_L_R2 = separateInHours(movement_y_L{2});
+% ymov_L_R3 = separateInHours(movement_y_L{3});
+% ymov_L_R4 = separateInHours(movement_y_L{4});
+% 
+% zmov_L_R1 = separateInHours(movement_z_L{1});
+% zmov_L_R2 = separateInHours(movement_z_L{2});
+% zmov_L_R3 = separateInHours(movement_z_L{3});
+% zmov_L_R4 = separateInHours(movement_z_L{4});
+% 
+% tmov_L_R1 = separateInHours(movement_total_L{1});
+% tmov_L_R2 = separateInHours(movement_total_L{2});
+% tmov_L_R3 = separateInHours(movement_total_L{3});
+% tmov_L_R4 = separateInHours(movement_total_L{4});
+% 
+% cr_x_L_R1 = correlation(indexes_L_R1, xmov_L_R1);
+% cr_x_L_R2 = correlation(indexes_L_R2, xmov_L_R2);
+% cr_x_L_R3 = correlation(indexes_L_R3, xmov_L_R3);
+% cr_x_L_R4 = correlation(indexes_L_R4, xmov_L_R4);
+% 
+% cr_y_L_R1 = correlation(indexes_L_R1, ymov_L_R1);
+% cr_y_L_R2 = correlation(indexes_L_R2, ymov_L_R2);
+% cr_y_L_R3 = correlation(indexes_L_R3, ymov_L_R3);
+% cr_y_L_R4 = correlation(indexes_L_R4, ymov_L_R4);
+% 
+% cr_z_L_R1 = correlation(indexes_L_R1, zmov_L_R1);
+% cr_z_L_R2 = correlation(indexes_L_R2, zmov_L_R2);
+% cr_z_L_R3 = correlation(indexes_L_R3, zmov_L_R3);
+% cr_z_L_R4 = correlation(indexes_L_R4, zmov_L_R4);
+% 
+% cr_t_L_R1 = correlation(indexes_L_R1, tmov_L_R1);
+% cr_t_L_R2 = correlation(indexes_L_R2, tmov_L_R2);
+% cr_t_L_R3 = correlation(indexes_L_R3, tmov_L_R3);
+% cr_t_L_R4 = correlation(indexes_L_R4, tmov_L_R4);
+%
+% analysis by hour size M
+% indexes_M_R1 = separateInHours(indexes_M{1});
+% indexes_M_R2 = separateInHours(indexes_M{2});
+% indexes_M_R3 = separateInHours(indexes_M{3});
+% indexes_M_R4 = separateInHours(indexes_M{4});
+% 
+% xmov_M_R1 = separateInHours(movement_x_M{1});
+% xmov_M_R2 = separateInHours(movement_x_M{2});
+% xmov_M_R3 = separateInHours(movement_x_M{3});
+% xmov_M_R4 = separateInHours(movement_x_M{4});
+% 
+% ymov_M_R1 = separateInHours(movement_y_M{1});
+% ymov_M_R2 = separateInHours(movement_y_M{2});
+% ymov_M_R3 = separateInHours(movement_y_M{3});
+% ymov_M_R4 = separateInHours(movement_y_M{4});
+% 
+% zmov_M_R1 = separateInHours(movement_z_M{1});
+% zmov_M_R2 = separateInHours(movement_z_M{2});
+% zmov_M_R3 = separateInHours(movement_z_M{3});
+% zmov_M_R4 = separateInHours(movement_z_M{4});
+% 
+% tmov_M_R1 = separateInHours(movement_total_M{1});
+% tmov_M_R2 = separateInHours(movement_total_M{2});
+% tmov_M_R3 = separateInHours(movement_total_M{3});
+% tmov_M_R4 = separateInHours(movement_total_M{4});
+% 
+% cr_x_M_R1 = correlation(indexes_M_R1, xmov_M_R1);
+% cr_x_M_R2 = correlation(indexes_M_R2, xmov_M_R2);
+% cr_x_M_R3 = correlation(indexes_M_R3, xmov_M_R3);
+% cr_x_M_R4 = correlation(indexes_M_R4, xmov_M_R4);
+% 
+% cr_y_M_R1 = correlation(indexes_M_R1, ymov_M_R1);
+% cr_y_M_R2 = correlation(indexes_M_R2, ymov_M_R2);
+% cr_y_M_R3 = correlation(indexes_M_R3, ymov_M_R3);
+% cr_y_M_R4 = correlation(indexes_M_R4, ymov_M_R4);
+% 
+% cr_z_M_R1 = correlation(indexes_M_R1, zmov_M_R1);
+% cr_z_M_R2 = correlation(indexes_M_R2, zmov_M_R2);
+% cr_z_M_R3 = correlation(indexes_M_R3, zmov_M_R3);
+% cr_z_M_R4 = correlation(indexes_M_R4, zmov_M_R4);
+% 
+% cr_t_M_R1 = correlation(indexes_M_R1, tmov_M_R1);
+% cr_t_M_R2 = correlation(indexes_M_R2, tmov_M_R2);
+% cr_t_M_R3 = correlation(indexes_M_R3, tmov_M_R3);
+% cr_t_M_R4 = correlation(indexes_M_R4, tmov_M_R4);
+%
+% analysis by hour size S
+% indexes_S_R1 = separateInHours(indexes_S{1});
+% indexes_S_R2 = separateInHours(indexes_S{2});
+% indexes_S_R3 = separateInHours(indexes_S{3});
+% indexes_S_R4 = separateInHours(indexes_S{4});
+% 
+% xmov_S_R1 = separateInHours(movement_x_S{1});
+% xmov_S_R2 = separateInHours(movement_x_S{2});
+% xmov_S_R3 = separateInHours(movement_x_S{3});
+% xmov_S_R4 = separateInHours(movement_x_S{4});
+% 
+% ymov_S_R1 = separateInHours(movement_y_S{1});
+% ymov_S_R2 = separateInHours(movement_y_S{2});
+% ymov_S_R3 = separateInHours(movement_y_S{3});
+% ymov_S_R4 = separateInHours(movement_y_S{4});
+% 
+% zmov_S_R1 = separateInHours(movement_z_S{1});
+% zmov_S_R2 = separateInHours(movement_z_S{2});
+% zmov_S_R3 = separateInHours(movement_z_S{3});
+% zmov_S_R4 = separateInHours(movement_z_S{4});
+% 
+% tmov_S_R1 = separateInHours(movement_total_S{1});
+% tmov_S_R2 = separateInHours(movement_total_S{2});
+% tmov_S_R3 = separateInHours(movement_total_S{3});
+% tmov_S_R4 = separateInHours(movement_total_S{4});
+% 
+% cr_x_S_R1 = correlation(indexes_S_R1, xmov_S_R1);
+% cr_x_S_R2 = correlation(indexes_S_R2, xmov_S_R2);
+% cr_x_S_R3 = correlation(indexes_S_R3, xmov_S_R3);
+% cr_x_S_R4 = correlation(indexes_S_R4, xmov_S_R4);
+% 
+% cr_y_S_R1 = correlation(indexes_S_R1, ymov_S_R1);
+% cr_y_S_R2 = correlation(indexes_S_R2, ymov_S_R2);
+% cr_y_S_R3 = correlation(indexes_S_R3, ymov_S_R3);
+% cr_y_S_R4 = correlation(indexes_S_R4, ymov_S_R4);
+% 
+% cr_z_S_R1 = correlation(indexes_S_R1, zmov_S_R1);
+% cr_z_S_R2 = correlation(indexes_S_R2, zmov_S_R2);
+% cr_z_S_R3 = correlation(indexes_S_R3, zmov_S_R3);
+% cr_z_S_R4 = correlation(indexes_S_R4, zmov_S_R4);
+% 
+% cr_t_S_R1 = correlation(indexes_S_R1, tmov_S_R1);
+% cr_t_S_R2 = correlation(indexes_S_R2, tmov_S_R2);
+% cr_t_S_R3 = correlation(indexes_S_R3, tmov_S_R3);
+% cr_t_S_R4 = correlation(indexes_S_R4, tmov_S_R4);
+
+
 % Comparison...
 % data for the Comparison Within Each Register
 
@@ -431,6 +570,29 @@ std_movement_z_S = cellfun(@std, movement_z_S);
 std_movement_total_L = cellfun(@std, movement_total_L);
 std_movement_total_M = cellfun(@std, movement_total_M);
 std_movement_total_S = cellfun(@std, movement_total_S);
+
+% 
+% figure
+% histogram(indexes_L{1})
+% title('mSQI indexes');
+% 
+% figure
+% subplot(221)
+% histogram(movement_x_L{1})
+% title('movement along X axis');
+% 
+% subplot(222)
+% histogram(movement_y_L{1})
+% title('movement along Y axis');
+% 
+% subplot(223)
+% histogram(movement_z_L{1})
+% title('movement along Z axis');
+% 
+% subplot(224)
+% histogram(movement_total_L{1})
+% title('overall movement');
+
 
 
 
