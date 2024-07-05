@@ -16,12 +16,12 @@ function [ECG_mv, accX, accY, accZ, accX_2, accY_2, accZ_2] = readPluxDataWithHe
     ECG_mv = ECG_v * 1000;
     
     % Separate accelerometer axes
-    accX = data_acc(:, 3);
+    accX = data_acc(:, 1);
     accY = data_acc(:, 2);
-    accZ = data_acc(:, 1);
+    accZ = data_acc(:, 3);
 
-    accX_2 = data_acc_2(:, 1);
+    accX_2 = data_acc_2(:, 3);
     accY_2 = data_acc_2(:, 2);
-    accZ_2 = data_acc_2(:, 3);
+    accZ_2 = data_acc_2(:, 1);
     
 end
